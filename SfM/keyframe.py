@@ -9,7 +9,7 @@ class KeyFrame(object):
 
         '''pointList store the mapPoint idx that contains in the keyframe'''
         if pointList is not None:
-            self.pointList = pointList
+            self.pointList = list(tuple(pointList))
         else:
             self.pointList = list([])
 
@@ -28,6 +28,8 @@ class KeyFrame(object):
         '''pointList is a list that contains the idx in point cloud'''
         for p in pointList:
             self.pointList.append(p)
+
+        print("[Keyframe] Update Keyframe NO. ", self.keyframeid, " Contains keypoints: ", len(self.pointList) )
 
 
 

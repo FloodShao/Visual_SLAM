@@ -31,7 +31,9 @@ frame2.t_w = t
 #print(frame1.R_w, frame2.R_w)
 points, pointIdx = VO.triangulation(frame1, frame2, matchedPoints1, matchedPoints2, matches)
 
-VO.updatePointCloud(points, pointIdx, frame1, frame2)
+start_count, end_count = VO.updatePointCloud(points, pointIdx, frame1, frame2)
+print(start_count, ",  ", end_count)
+print(len(VO.map.pointCloud))
 
 #print(VO.map.pointCloud[0].descriptors)
 #print(frame1.descriptors[pointIdx[0]])

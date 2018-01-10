@@ -31,6 +31,7 @@ class VO(object):
 
     def updateframe(self, frame):
         self.frameStruct[frame.id] = frame
+        print("Update frame NO. ", frame.id)
 
 
     def featureMatches(self, refDescriptors,  curDescriptors):
@@ -160,12 +161,14 @@ class VO(object):
         :param pointIdx: list of the feature index in frame1
         :param frame1: frame1 that used for triangulation
         :param frame2: frame2 that used for triangulation
-        :return: no return
+        :return: updated pointCloud idx
         """
         if self.map is None:
             temp_map = Map()
         else:
             temp_map = self.map
+
+        start_count = len(temp_map.pointCloud)
 
         i = 0
         for p in points:
@@ -173,7 +176,10 @@ class VO(object):
             temp_map.addMapPoint(point)
             i = i+1
 
+        end_count = len(temp_map.pointCloud)
+
         self.map = temp_map
+        return start_count, end_count
 
     def generatePointCloudDescriptors(self):
         if self.map.pointCloud is None:
@@ -189,6 +195,11 @@ class VO(object):
         return np.array(descriptors)
 
     def newframePnP(self, frame):
+        """
+        Proceed the solution for new frame PnP
+        :param frame: newly added frame, with id, featurePoints, descriptors, cameraParams
+        :return: if successful, return R_w, t_w, and inliers; if unsuccessful return False
+        """
         des_Map = self.generatePointCloudDescriptors()
 
         matches = self.featureMatches(des_Map, frame.descriptors )
@@ -208,10 +219,58 @@ class VO(object):
         flag, R_vector, t_vector, inliers = cv2.solvePnPRansac(objectPoints, imagePoints, frame.cameraParams, distCoeffs, R_vector, t_vector,
                            useExtrinsicGuess = False, iterationsCount = 100, reprojectionError = 8.0, confidence = 0.99,
                            inliers = inliers)
+        f_inliers = []
+        for inl in inliers:
+            f_inliers.append(inl[0].T) #mind that the inliers contains other parameters
+
         if(flag == True):
-            return R_vector, t_vector, inliers
+            frame.R_w = util.rvect2Rmat(R_vector)
+            frame.t_w = t_vector
+            frame.inliers = f_inliers
+            print("Solved PnP for frame No. ", frame.id, " frame inliers: ", len(frame.inliers))
+            return frame.R_w, frame.t_w, frame.inliers
         else:
             return False
+
+
+    def initilization(self, frame1, frame2):
+
+        '''(1)feature matches'''
+        matches = self.featureMatches(frame1.descriptors, frame2.descriptors)
+        #VO.plotMatches(frame1, frame2, matches)
+
+        matchedPoints1, matchedPoints2 = self.generateMatchedPoints(frame1, frame2, matches)
+
+        '''(2)find relative pose of frame2'''
+        R, t = self.findRelativePose(matchedPoints1, matchedPoints2, frame1.cameraParams)
+        frame2.R_w = R * frame1.R_w
+        frame2.t_w = frame1.t_w + np.dot(frame1.R_w , t)
+        self.updateframe(frame2)
+
+        '''(3)triangulation'''
+        points, pointIdx = self.triangulation(frame1, frame2, matchedPoints1, matchedPoints2, matches)
+
+        '''(4)updatePointCloud'''
+
+        start_count, end_count = self.updatePointCloud(points, pointIdx, frame1, frame2)
+
+        '''(5)addkeyframe'''
+        f_inliers = []
+        for p in self.map.pointCloud[start_count: end_count]:
+            f_inliers.append(p.id)
+
+        frame1.updateframe(None, None, f_inliers)
+        frame2.updateframe(None, None, f_inliers)
+
+        self.map.addKeyFrame(frame1)
+
+
+
+
+
+
+
+
 
 
 

@@ -38,17 +38,16 @@ class Map(object):
 
                     keyframe = KeyFrame(keyframeid=len(self.keyframeset), pointList=temp_pointlist)
                     self.keyframeset.append(keyframe)
-                    print("[Keyframe] Add a keyframe, keyframeid:", keyframe.keyframeid, "contains points:",
-                          len(keyframe.pointList))
+                    print("[Keyframe] Add a keyframe, keyframeid:", keyframe.keyframeid)
                     flag = 1
 
                     break
+
 
         if(flag == 0):
             return False
         else:
             return True
-
 
 
 

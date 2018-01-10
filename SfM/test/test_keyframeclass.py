@@ -3,7 +3,7 @@ from map import Map
 import cv2
 import numpy as np
 import util
-import math
+
 
 """check the reprojection
 """
@@ -31,9 +31,9 @@ frame2.updateframe( R, t, None)
 #print(frame1.R_w, frame2.R_w)
 points, pointIdx = VO.triangulation(frame1, frame2, matchedPoints1, matchedPoints2, matches)
 
-VO.updatePointCloud(points, pointIdx, frame1, frame2)
+start_count, end_count = VO.updatePointCloud(points, pointIdx, frame1, frame2)
 f_inliers = []
-for p in VO.map.pointCloud:
+for p in VO.map.pointCloud[start_count: end_count]:
     f_inliers.append(p.id)
 
 frame1.updateframe( None, None, f_inliers)
@@ -55,12 +55,10 @@ des = VO.generatePointCloudDescriptors()
 
 
 rvec, tvec, inliers = VO.newframePnP(frame3)
-R_w = util.rvect2Rmat(rvec)
-t_w = tvec
+
 f3_inliers = []
 
 for i in inliers:
-    print(i[0])
     f3_inliers.append(i[0])
 frame3.updateframe(R_w, t_w, f3_inliers)
 

@@ -6,5 +6,6 @@ CameraIntrinsics = {
 
 file_dir = {
     'data_dir_test' : '../data/datadir.txt',
-    'data_dir' : './data/datadir.txt'
+    'data_dir' : './data/datadir.txt',
+    'data_dir_tube': './data/datadir_tube.txt'
 }
