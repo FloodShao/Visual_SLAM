@@ -1,9 +1,12 @@
 from visualOdometry import VO
+from structurePointCloud import StructurePointCloud
 import cv2
 import os
 import numpy as np
 from map import Map
 from config_default import file_dir
+import matplotlib.pyplot as plt
+import scipy.io as sio
 
 associate_file = file_dir['data_dir_tube']
 try:
@@ -18,8 +21,10 @@ except AssertionError:
 if __name__ == '__main__':
 
     '''construct the data structure and VO'''
-    mymap = Map()
-    myVO = VO(mymap)
+    #mymap = Map()
+    #myStructPoint = StructurePointCloud()
+    myVO = VO()
+
 
     for line in fh.readlines():
         line = line.strip()
@@ -38,6 +43,7 @@ if __name__ == '__main__':
             if len(myVO.frameStruct) == 2: #proceed the initialization
                 myVO.initilization(myVO.frameStruct[0], myVO.frameStruct[1])
                 '''Now we add the fist keyframe'''
+
             else:
                 '''a new frame added, need to update R_w, t_w, inliers'''
                 try:
@@ -62,6 +68,41 @@ if __name__ == '__main__':
                     newly_keypoint_Idx = list(range(start_count, end_count))
                     '''(4)updatekeyframe'''
                     myVO.map.keyframeset[-1].updatePointList(newly_keypoint_Idx)
-
-
+                else:
+                    prevframe = myVO.frameStruct[curframe.id - 1]
+                    matches = myVO.featureMatches(curframe.descriptors, prevframe.descriptors)
+                    matchedPoints1, matchedPoints2 = myVO.generateMatchedPoints(curframe, prevframe, matches)
+                    points, pointIdx = myVO.triangulation(curframe, prevframe, matchedPoints1, matchedPoints2, matches)
+       
     fh.close()
+
+    point_cloud = []
+    for p in myVO.map.pointCloud:
+        point_cloud.append(list(p.point3d))
+
+    structure_point_cloud = []
+    for p in myVO.structurePointCloud.mappoint:
+        structure_point_cloud.append(p)
+
+    path = []
+    for p in myVO.frameStruct:
+        path.append(p.t_w.transpose().tolist())
+
+    point_cloud_mat = np.array(point_cloud).transpose()
+    structure_point_cloud_mat = np.array(structure_point_cloud).transpose()
+    path = np.array(path)
+    print(path.shape)
+    
+    
+    np.save("./data/capsule_point_cloud_1_11.npy", point_cloud_mat)
+    sio.savemat("./data/capsule_point_cloud_1_11.mat", {'data':point_cloud_mat})
+
+    sio.savemat("./data/capsule_structure_cloud_1_11.mat", {'data':structure_point_cloud_mat})
+    sio.savemat("./data/path_1_11.mat", {'data':path})
+    
+
+
+
+
+
+

@@ -9,3 +9,8 @@ file_dir = {
     'data_dir' : './data/datadir.txt',
     'data_dir_tube': './data/datadir_tube.txt'
 }
+
+compare_keyframe = {
+    'neighbor_keyframe' : 4,
+    'intersection_ratio' : 0.5
+}

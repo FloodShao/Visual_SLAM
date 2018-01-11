@@ -1,5 +1,6 @@
 from mapPoint import MapPoint
 from keyframe import KeyFrame
+from config_default import compare_keyframe
 
 class Map(object):
 
@@ -30,24 +31,30 @@ class Map(object):
                   len(keyframe.pointList))
             flag = 1
         else:
-            for kf in self.keyframeset:
+            count = 0
+            for kf in self.keyframeset[-1 : -(compare_keyframe['neighbor_keyframe'] +1) : -1]:
+                '''We only compare with the nearest keyframe'''
 
                 commonlist = list(set(temp_pointlist).intersection(set(kf.pointList)))
 
-                if len(commonlist) < 0.5 * len(kf.pointList):
+                if len(commonlist) > compare_keyframe['intersection_ratio'] * len(kf.pointList):
+                    '''if there is one frame that has over 50% intersection with one frame, 
+                    then we do not add the keyframe'''
+                    count = count +1
 
-                    keyframe = KeyFrame(keyframeid=len(self.keyframeset), pointList=temp_pointlist)
-                    self.keyframeset.append(keyframe)
-                    print("[Keyframe] Add a keyframe, keyframeid:", keyframe.keyframeid)
-                    flag = 1
-
-                    break
-
+            if count == 0:
+                keyframe = KeyFrame(keyframeid=len(self.keyframeset), pointList=temp_pointlist)
+                self.keyframeset.append(keyframe)
+                print("[Keyframe] Add a keyframe, keyframeid:", keyframe.keyframeid)
+                flag = 1
 
         if(flag == 0):
             return False
         else:
             return True
+
+
+
 
 
 

@@ -4,14 +4,20 @@ import util
 from frame import Frame
 from mapPoint import MapPoint
 from map import Map
+from structurePointCloud import StructurePointCloud
 
 class VO(object):
 
-    def __init__(self, map = None, frameStruct = None):
+    def __init__(self, map = None, structurePointCloud = None, frameStruct = None, ):
         if Map is not None:
             self.map = map
         else:
             self.map = Map() #import Map, create the object
+
+        if structurePointCloud is not None:
+            self.structurePointCloud = structurePointCloud
+        else:
+            self.structurePointCloud = StructurePointCloud()
 
         if frameStruct is not None:
             self.frameStruct = frameStruct  #list
@@ -152,6 +158,11 @@ class VO(object):
                 points3d.append(point_3d)
                 pointIdx.append(matches[i].queryIdx)
 
+        '''every time we do triangulation, we store the point'''
+        for p in points3d:
+            self.structurePointCloud.addpoint(p, 'b')
+
+        print("**add to structure point, ", "Points: ", len(self.structurePointCloud.mappoint))
         return np.array(points3d), pointIdx
 
     def updatePointCloud(self, points, pointIdx, frame1, frame2):
