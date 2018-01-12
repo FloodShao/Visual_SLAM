@@ -1,7 +1,7 @@
 CameraIntrinsics = {
-    'focal_length' : 1.0376e03,
-    'cx' : 642.2316,
-    'cy' : 387.8358
+    'focal_length' : 7.176e2,
+    'cx' : 320.0,
+    'cy' : 240.0
 }
 
 file_dir = {

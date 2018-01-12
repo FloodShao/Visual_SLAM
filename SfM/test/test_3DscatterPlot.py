@@ -23,7 +23,7 @@ print(path.shape)
 data = list(m.transpose())
 A = []
 for d in data:
-    if math.fabs(d[0]) > 50 or math.fabs(d[1])>50 or math.fabs(d[2])>200:
+    if math.fabs(d[0]) > 400 or math.fabs(d[1])>400 or math.fabs(d[2])>2e4:
         continue
     else:
         A.append(d)
@@ -41,12 +41,15 @@ ax.scatter(x, y, z, 'b')
 ax.set_xlabel('X')
 ax.set_ylabel('Y')
 ax.set_zlabel('Z')
-plt.show()
+
 
 fig1 = plt.figure()
-ax1=fig.add_subplot(111, projection='3d')
+ax1=fig1.add_subplot(111, projection='3d')
 for i in range(path.shape[0]):
     ax1.scatter(path[i][0][0], path[i][0][1], path[i][0][2])
-
-
+    print(path[i][0])
+ax1.set_xlabel('X')
+ax1.set_ylabel('Y')
+ax1.set_zlabel('Z')
+plt.show()
 
