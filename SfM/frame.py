@@ -46,6 +46,7 @@ class Frame(object):
         self.inliers = []
 
 
+
     def featureDetection_SIFT(self, image):
         '''img is np.ndarray type'''
         '''test if the image is rgb'''

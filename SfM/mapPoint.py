@@ -21,9 +21,14 @@ class MapPoint(object):
         else:
             self.descriptors = None
 
-    def updateMapPoint(self, newViewedId = None, point3d = None):
+        self.projection_inframe = [] #to store the featurepoints or inliers corresponding point wrt to the viewedframeid
+
+    def updateMapPoint(self, newViewedId = None, projection = None, point3d = None):
         if newViewedId is not None:
             self.viewedframeid.append(newViewedId)
+            if projection is not None:
+                self.projection_inframe.append(list(projection))
+
 
         if point3d is not None:
             self.point3d = point3d

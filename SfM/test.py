@@ -1,52 +1,85 @@
-from frame import Frame
 from visualOdometry import VO
+from structurePointCloud import StructurePointCloud
 import cv2
+import os
 import numpy as np
-import util
-from config_default import CameraIntrinsics
+from map import Map
+from config_default import file_dir
+import matplotlib.pyplot as plt
+import scipy.io as sio
+
+
+def project(frame, points_3d):
+    """
+    Project a point to the frame pixel coordinate
+    :param frame: frame object
+    :param points_3d: points_3d list
+    :return: points_2d list
+    """
+    R = frame.R_w
+    t = frame.t_w
+    f = frame.cameraParams[0, 0]
+    cx = frame.cameraParams[0, 2]
+    cy = frame.cameraParams[1, 2]
+
+    points_idx = 0
+    index = []
+
+    points_2d = []
+    for p in points_3d:
+        p_mat = np.array(p).reshape(3, 1)
+        P = np.dot(R, p_mat) + t
+        u_c = float(P[0]/P[2])
+        v_c = float(P[1]/P[2])
+
+        u_s = f * u_c + cx
+        v_s = f * v_c + cy
+
+        if u_s > frame.shape[0] or u_s < 0 or v_s > frame.shape[1] or v_s < 0:
+            points_idx += 1
+            continue
+
+        points_2d.append([u_s, v_s])
+        index.append(points_idx)
+        points_idx += 1
+
+
+    return points_2d, index
+
+
 
 
 VO = VO()
 
-image1 = cv2.imread('./data/1.png')
-image2 = cv2.imread('./data/2.png')
-"""
-frame1 = Frame(0)
-frame2 = Frame(1)
+image1 = cv2.imread('./data/capture_images_100.jpg')
+image2 = cv2.imread('./data/capture_images_101.jpg')
 
-des1 = frame1.featureDetection_SIFT(image1)
-des2 = frame2.featureDetection_SIFT(image2)
+frame1 = VO.addframe(image1)
+frame2 = VO.addframe(image2)
 
-matches = frame2.featureMatches(des1, des2)
-frame2.plotMatches(frame1, frame2, matches)
-"""
-frame1, des1 = VO.addframe(image1)
-frame2, des2 = VO.addframe(image2)
-
-matches = VO.featureMatches(des1, des2)
-#VO.plotMatches(VO.frameStruct[0], VO.frameStruct[1], matches)
-
-matchedPoints1, matchedPoints2 = VO.generateMatchedPoints(frame1, frame2, matches)
-
-#print(matchedPoints1)
-R, t = VO.findRelativePose(matchedPoints1, matchedPoints2, frame1.cameraParams)
-
-frame1.R_w = np.eye(3)
-frame1.t_w = np.zeros((3,1))
-frame2.R_w = R
-frame2.t_w = t
-
-#print(frame1.R_w, frame2.R_w)
-points = VO.triangulation(frame1, frame2, matchedPoints1, matchedPoints2)
+VO.initilization(frame1, frame2)
 
 
-A = np.zeros(points.shape)
-for i in range(points.shape[0]):
-    A[i, :2] = points[i, :2] / points[i, 2]
-    A[i, 2] = points[i, 2]
-print(A)
-B = util.pixel2camera(matchedPoints1, frame1.cameraParams)
 
-print(B)
+point_cloud = []
+points0 = []
+points1 = []
+for p in VO.map.pointCloud:
+    point_cloud.append(list(p.point3d))
+    for i in range(len(p.viewedframeid)):
+        if p.viewedframeid[i] == 0:
+            points0.append(p.projection_inframe[i])
+        else:
+            points1.append(p.projection_inframe[i])
+
+points_2d, index= project(frame1, point_cloud)
+
+print(index[-1])
+print(len(points_2d))
+
+for i in range(len(points_2d)):
+    print(points_2d[i], "    ", points0[index[i]])
 
 cv2.waitKey()
+
+

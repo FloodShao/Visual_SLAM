@@ -64,7 +64,7 @@ if __name__ == '__main__':
                     '''(2)triangulation'''
                     points, pointIdx = myVO.triangulation(curframe, prevframe, matchedPoints1, matchedPoints2, matches)
                     '''(3)updatePointCloud'''
-                    start_count, end_count = myVO.updatePointCloud(points, pointIdx, curframe, prevframe)
+                    start_count, end_count = myVO.updatePointCloud(points, pointIdx, curframe, prevframe, matchedPoints1, matchedPoints2)
                     newly_keypoint_Idx = list(range(start_count, end_count))
                     '''(4)updatekeyframe'''
                     myVO.map.keyframeset[-1].updatePointList(newly_keypoint_Idx)

@@ -97,7 +97,9 @@ class VO(object):
         i = 0
         for m in matches:
             matchedPoints1[i, :] = frame1.featurePoints[m.queryIdx].pt
+
             matchedPoints2[i, :] = frame2.featurePoints[m.trainIdx].pt
+
             i = i+1
         return matchedPoints1, matchedPoints2
 
@@ -136,7 +138,7 @@ class VO(object):
         pts1 = util.pixel2camera(matchedPoints1, frame1.cameraParams)
         pts2 = util.pixel2camera(matchedPoints2, frame2.cameraParams)
 
-        points4d = np.zeros( (4, len(matchedPoints1))) #triangulate in homogeneous coordinates
+        points4d = np.zeros( (4, len(matchedPoints1)) ) #triangulate in homogeneous coordinates
         pMatrix1 = np.hstack( (frame1.R_w, frame1.t_w) )
         pMatrix2 = np.hstack( (frame2.R_w, frame2.t_w) )
 
@@ -165,7 +167,7 @@ class VO(object):
         print("**add to structure point, ", "Points: ", len(self.structurePointCloud.mappoint))
         return np.array(points3d), pointIdx
 
-    def updatePointCloud(self, points, pointIdx, frame1, frame2):
+    def updatePointCloud(self, points, pointIdx, frame1, frame2, matchedPoints1, matchedPoints2):
         """
         This function should be used after triangulation, to add more point in the map
         :param points: Nx3 triangulated points
@@ -183,7 +185,10 @@ class VO(object):
 
         i = 0
         for p in points:
-            point = MapPoint(id = None, point3d=p, viewedframeid=[frame1.id, frame2.id], descriptors=frame1.descriptors[pointIdx[i]])
+            point = MapPoint(id = None, point3d=p, viewedframeid= None, descriptors=frame1.descriptors[pointIdx[i]])
+            point.updateMapPoint(frame1.id, matchedPoints1[i])
+            point.updateMapPoint(frame2.id, matchedPoints2[i])
+
             temp_map.addMapPoint(point)
             i = i+1
 
@@ -263,7 +268,7 @@ class VO(object):
 
         '''(4)updatePointCloud'''
 
-        start_count, end_count = self.updatePointCloud(points, pointIdx, frame1, frame2)
+        start_count, end_count = self.updatePointCloud(points, pointIdx, frame1, frame2, matchedPoints1, matchedPoints2)
 
         '''(5)addkeyframe'''
         f_inliers = []

@@ -16,9 +16,11 @@ class Map(object):
             self.keyframeset = list([])
 
     def addMapPoint(self, mappoint):
+        '''
         point = MapPoint( id = len(self.pointCloud), point3d=mappoint.point3d,
                           viewedframeid=mappoint.viewedframeid, descriptors=mappoint.descriptors)
-        self.pointCloud.append(point)
+        '''
+        self.pointCloud.append(mappoint)
 
     def addKeyFrame(self, frame):
         '''first we need to find out weather this frame is a keyframe'''
