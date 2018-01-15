@@ -31,16 +31,16 @@ class Frame(object):
         if R_w is not None:
             self.R_w = R_w #rotation matrix 3*3
         else:
-            self.R_w = np.array([ [1, 0, 0],
-                                  [0, 1, 0],
-                                  [0, 0, 1]])
+            self.R_w = np.array([ [1., 0., 0.],
+                                  [0., 1., 0.],
+                                  [0., 0., 1.]])
 
         if t_w is not None:
             self.t_w = t_w #translation matrix 3*1
         else:
-            self.t_w = np.array([ [0],
-                                  [0],
-                                  [0]])
+            self.t_w = np.array([ [0.],
+                                  [0.],
+                                  [0.]])
 
         self.image = image
         self.inliers = []

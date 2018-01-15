@@ -74,7 +74,7 @@ for p in VO.map.pointCloud:
 
 points_2d, index= project(frame1, point_cloud)
 
-print(index[-1])
+print(len(point_cloud[0]))
 print(len(points_2d))
 
 for i in range(len(points_2d)):

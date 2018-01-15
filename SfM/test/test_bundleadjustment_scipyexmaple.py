@@ -92,7 +92,7 @@ def bundle_adjustment_sparsity(n_cameras, n_points, camera_indices, point_indice
         A[2 * i, n_cameras * 9 + point_indices * 3 + s] = 1
         A[2 * i + 1, n_cameras * 9 + point_indices * 3 + s] = 1
 
-    return A
+    return A #construct the jacobian matrix
 
 if not os.path.isfile(FILE_NAME):
     urllib.request.urlretrieve(URL, FILE_NAME)
@@ -104,16 +104,23 @@ n_points = points_3d.shape[0]
 n = 9 * n_cameras + 3 * n_points
 m = 2 * points_2d.shape[0]
 
+print("m", m)
+print("n", n)
 
 
 x0 = np.hstack((camera_params.ravel(), points_3d.ravel()))
 f0 = fun(x0, n_cameras, n_points, camera_indices, point_indices, points_2d)
+
+print(points_2d.shape)
+
 
 plt.figure(1)
 plt.subplot(211)
 plt.plot(f0)
 
 A = bundle_adjustment_sparsity(n_cameras, n_points, camera_indices, point_indices)
+print(A.shape)
+print(camera_indices)
 t0 = time.time()
 res = least_squares(fun, x0, jac_sparsity= A, verbose=2, x_scale='jac', ftol=1e-4, method='trf', args=(n_cameras, n_points, camera_indices, point_indices, points_2d))
 t1 = time.time()

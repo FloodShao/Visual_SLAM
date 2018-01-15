@@ -58,10 +58,13 @@ def skewMatrix( vector ):
 
 def rvect2Rmat( rvec ):
     """
-    Change the rotation vector to rotation matrix
+    Change the rotation vector to rotation matrix, recommend to use cv2.Rodrigues
     :param rvec: 3x1 input rotation vector
     :return: output rotation matrix
     """
+
+    Rmat, J = cv2.Rodrigues(rvec)
+    '''
     if rvec is None:
         print("[Error] No rvec input")
         return False
@@ -72,7 +75,7 @@ def rvect2Rmat( rvec ):
     Rmat = math.cos(theta) * np.eye(3) + \
            (1 - math.cos(theta)) * rvec * rvec.transpose() + \
            math.sin(theta) * skewMatrix(rvec)
-
+    '''
     return Rmat
 
 def Rmat2rvec( Rmat):
