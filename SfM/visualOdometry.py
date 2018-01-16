@@ -156,7 +156,7 @@ class VO(object):
         for i in range(points4d.shape[0]):
             point_3d = points4d[i, :3] / points4d[i, 3]  #mind the index of array
             '''we observe some constructed points have negative depth, we should clear them out'''
-            if(point_3d[2] > 0):
+            if(point_3d[2] > 0 and np.linalg.norm(point_3d) < 30):
                 points3d.append(point_3d)
                 pointIdx.append(matches[i].queryIdx)
 

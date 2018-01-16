@@ -6,6 +6,7 @@ import numpy as np
 from map import Map
 from config_default import file_dir
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import scipy.io as sio
 
 associate_file = file_dir['data_dir_tube']
@@ -92,14 +93,30 @@ if __name__ == '__main__':
     structure_point_cloud_mat = np.array(structure_point_cloud).transpose()
     path = np.array(path)
     print(path.shape)
-    
-    
+
+    path_temp = []
+    for p in path:
+        path_temp.append(p[0])
+    path_temp = np.array(path_temp)
+
+    fig = plt.figure(1)
+    xp, yp, zp = path_temp.transpose()[0], path_temp.transpose()[1], path_temp.transpose()[2]
+
+    ax = Axes3D(fig)
+    ax.plot(xp, yp, zp, 'r')
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    plt.show()
+
+
+    '''
     np.save("./data/capsule_point_cloud_1_11.npy", point_cloud_mat)
     sio.savemat("./data/capsule_point_cloud_1_11.mat", {'data':point_cloud_mat})
 
     sio.savemat("./data/capsule_structure_cloud_1_11.mat", {'data':structure_point_cloud_mat})
     sio.savemat("./data/path_1_11.mat", {'data':path})
-    
+    '''
 
 
 
