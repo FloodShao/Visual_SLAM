@@ -1,7 +1,7 @@
 import numpy as np
 
 class KeyFrame(object):
-    def __init__(self, keyframeid = None, pointList = None ):
+    def __init__(self, keyframeid = None, pointList = None, insertframeid = None, newpointstart = None ):
         if keyframeid is not None:
             self.keyframeid = keyframeid
         else:
@@ -12,6 +12,16 @@ class KeyFrame(object):
             self.pointList = list(tuple(pointList))
         else:
             self.pointList = list([])
+
+        if insertframeid is not None:
+            self.insertframeid = insertframeid
+        else:
+            print("To add a keyframe, you need to add the insertframeid to perform BA")
+
+        if newpointstart is not None:
+            self.newpointstart = newpointstart
+        else:
+            self.newpointstart = 0
 
     def generateDescriptors(self, map):
         if self.pointList is None:

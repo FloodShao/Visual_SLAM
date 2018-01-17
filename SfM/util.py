@@ -82,7 +82,7 @@ def Rmat2rvec( Rmat):
     """
     Provide 2 ways to convert, recommend cv2 method
     :param Rmat: 3x3 Rmat
-    :return: rvec 3x1
+    :return: rvec 1x3
     """
     '''method cv2'''
     rvec, Jacobian = cv2.Rodrigues(Rmat)
@@ -95,6 +95,7 @@ def Rmat2rvec( Rmat):
         if D[i] == 1:
             rvec = np.array(theta * V[i]).transpose()
     '''
+
     return rvec
 
 

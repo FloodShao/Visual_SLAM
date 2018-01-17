@@ -14,3 +14,7 @@ compare_keyframe = {
     'neighbor_keyframe' : 4,
     'intersection_ratio' : 0.5
 }
+
+triangulation_relate = {
+    'dis_threshold' : 30
+}

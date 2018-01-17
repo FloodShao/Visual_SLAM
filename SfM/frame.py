@@ -4,7 +4,7 @@ from config_default import CameraIntrinsics
 
 class Frame(object):
 
-    def __init__(self, id = None, featurePoints = None, descriptors = None, cameraParams = None, R_w = None, t_w = None, image = None):
+    def __init__(self, id = None, featurePoints = None, descriptors = None, cameraParams = None, r_w = None, t_w = None, image = None):
         """R_w: rotation matrix wrt the world coordinates.
            t_w: translation matrix wrt the world coordinates.
         """
@@ -28,23 +28,18 @@ class Frame(object):
         else:
             self.cameraParams = self.getCameraParams(CameraIntrinsics)
 
-        if R_w is not None:
-            self.R_w = R_w #rotation matrix 3*3
+        if r_w is not None:
+            self.r_w = r_w #rotation vector
         else:
-            self.R_w = np.array([ [1., 0., 0.],
-                                  [0., 1., 0.],
-                                  [0., 0., 1.]])
+            self.r_w = np.array([[0.], [0.], [0.]])
 
         if t_w is not None:
-            self.t_w = t_w #translation matrix 3*1
+            self.t_w = t_w #translation vector
         else:
-            self.t_w = np.array([ [0.],
-                                  [0.],
-                                  [0.]])
+            self.t_w = np.array([[0.], [0.], [0.]])
 
         self.image = image
         self.inliers = []
-
 
 
     def featureDetection_SIFT(self, image):
@@ -110,14 +105,14 @@ class Frame(object):
 
         return K
 
-    def updateframe(self, R_w, t_w, inliers):
+    def updateframe(self, r_w, t_w, inliers):
         '''if the arguments is None, then do not update those items'''
-        if R_w is not None:
-            if(R_w.shape != (3,3)):
-                print("[Error] frame.updateframe: R_w is not a 3x3 array" )
+        if r_w is not None:
+            if(r_w.shape != (1, 3)):
+                print("[Error] frame.updateframe: Please provide rotation vector" )
                 return False
             else:
-                self.R_w = R_w
+                self.r_w = r_w
 
         if t_w is not None:
             if(t_w.shape != (3,1)):
