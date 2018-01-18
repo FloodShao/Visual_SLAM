@@ -42,6 +42,8 @@ if __name__ == '__main__':
             if len(myVO.frameStruct) == 2:
                 '''frame1 proceed the initialization'''
                 myVO.initilization(myVO.frameStruct[0], myVO.frameStruct[1])
+                start_count = 0
+                end_count = len(myVO.map.pointCloud)
 
             else:
                 '''a new frame added, first to update the pose'''
@@ -56,13 +58,13 @@ if __name__ == '__main__':
                 '''update point cloud'''
                 prevframe = myVO.frameStruct[curframe.id -1]
                 '''(1) feature matching with previous frame'''
-                matches = myVO.featureMatches(curframe.descriptors, prevframe.descriptors)
-                matchedPoints1, matchedPoints2 = myVO.generateMatchedPoints(curframe, prevframe, matches)
+                matches = myVO.featureMatches(prevframe.descriptors, curframe.descriptors)
+                matchedPoints1, matchedPoints2 = myVO.generateMatchedPoints( prevframe, curframe, matches)
                 '''(2)triangulation'''
-                points, pointIdx = myVO.triangulation(curframe, prevframe, matchedPoints1, matchedPoints2, matches)
+                points, pointIdx = myVO.triangulation(prevframe, curframe, matchedPoints1, matchedPoints2, matches)
                 '''(3)updatePointCloud'''
                 start_count, end_count = myVO.map.updatePointCloud(
-                    points, pointIdx, curframe, prevframe, matchedPoints1, matchedPoints2)
+                    points, pointIdx, prevframe, curframe, matchedPoints1, matchedPoints2)
                 '''(4)check whether curframe is a keyframe'''
                 if myVO.map.addKeyFrame(curframe, end_count):
                     '''if true, create a keyframe object with curframe inliers'''
@@ -71,14 +73,14 @@ if __name__ == '__main__':
                     myVO.map.keyframeset[-1].updatePointList(newly_keypoint_Idx)
 
                     '''(6)Every time we add a keyframe, we will do the local BA'''
-
+                    '''
                     start_frame = myVO.map.keyframeset[-2].insertframeid
                     end_frame = myVO.map.keyframeset[-1].insertframeid
                     start_point = myVO.map.keyframeset[-2].newpointstart
                     end_point = end_count #the total length of the point cloud
                     myVO.localBA(start_frame, end_frame, start_point, end_point)
-
-                #myVO.localBA(curframe.id-1, curframe.id, start_count, end_count)
+                    '''
+                myVO.localBA(curframe.id-1, curframe.id, start_count, end_count)
 
 
     fh.close()

@@ -42,14 +42,14 @@ class VO(object):
 
         FLANN_INDEX_KDTREE = 1
         index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
-        search_params = dict(checks = 50)
+        search_params = dict(checks = 500)
 
         flann = cv2.FlannBasedMatcher(index_params, search_params)
         matches = flann.knnMatch(refDescriptors, curDescriptors, k = 2)
 
         good_matches = []
         for m, n in matches:
-            if m.distance < 0.7 * n.distance:
+            if m.distance < 0.5 * n.distance:
                 good_matches.append(m)
 
         '''bf matching, need to use featureDetection_ORB, change in VO.addframe'''
@@ -105,7 +105,7 @@ class VO(object):
     def findRelativePose(self, matchedPoints1, matchedPoints2, cameraParameters):
 
         E, mask = cv2.findEssentialMat(matchedPoints1, matchedPoints2, cameraParameters,
-                                 method=cv2.RANSAC, prob=0.999, threshold=1.0)
+                                 method=cv2.RANSAC, prob=0.9, threshold=1e-3)
         '''
         U, sigma, VT = np.linalg.svd(E)
         sigma = [1, 1, 0]
@@ -176,13 +176,19 @@ class VO(object):
         #print(self.map.pointCloud[0].descriptors.shape[0])
 
         descriptors = []
+
         point_list = []
+        '''
+
         for kf in self.map.keyframeset:
             point_list.extend(kf.pointList)
 
         point_list = list(set(point_list))
         for p in point_list:
             descriptors.append(self.map.pointCloud[p].descriptors)
+        '''
+        for p in self.map.pointCloud:
+            descriptors.append(p.descriptors)
 
         return np.array(descriptors), point_list
 
@@ -199,18 +205,23 @@ class VO(object):
         objectPoints = []
         imagePoints = []
         for m in matches:
-            objectPoints.append( self.map.pointCloud[ point_list[m.queryIdx] ].point3d )
+            objectPoints.append( self.map.pointCloud[ m.queryIdx ].point3d )
             imagePoints.append( frame.featurePoints[m.trainIdx].pt )
 
         objectPoints = np.array(objectPoints)
         imagePoints = np.array(imagePoints)
-        R_vector = np.array([])
-        t_vector = np.array([])
+        R_vector = self.frameStruct[frame.id-1].r_w
+        t_vector = self.frameStruct[frame.id-1].t_w
         distCoeffs = None
         inliers = np.array([])
         flag, R_vector, t_vector, inliers = cv2.solvePnPRansac(objectPoints, imagePoints, frame.cameraParams, distCoeffs, R_vector, t_vector,
-                           useExtrinsicGuess = False, iterationsCount = 100, reprojectionError = 8.0, confidence = 0.99,
-                           inliers = inliers)
+                           useExtrinsicGuess = False, iterationsCount = 100, reprojectionError = 4.0, confidence = 0.7,
+                           inliers = inliers, flags=cv2.SOLVEPNP_DLS)
+
+        #flag, R_vector, t_vector, inliers = cv2.solvePnPRansac(objectPoints, imagePoints, frame.cameraParams, distCoeffs, R_vector, t_vector,
+        #                   useExtrinsicGuess = True, iterationsCount = 100, reprojectionError = 4.0, confidence = 0.8,
+        #                   inliers = inliers, flags=cv2.SOLVEPNP_ITERATIVE)
+
         f_inliers = []
         for inl in inliers:
             f_inliers.extend(inl.tolist()) #mind that the inliers contains other parameters
@@ -301,7 +312,7 @@ class VO(object):
         x0 = np.hstack( (np.array(frameArgs).ravel(), np.array(points_3d).ravel()) )
 
         res = least_squares(BA.reprojetion_error, x0, jac_sparsity=A,
-                            verbose=2, x_scale='jac', ftol=1e-4, method='trf',
+                            verbose=2, x_scale='jac', ftol=1e-3, method='trf',
                             args=(points_2d_observe, n_frames, n_points, frame_indices, point_indices))
 
         frameArgs_opt, points_3d_opt = BA.recoverResults(res.x, n_frames, n_points)
