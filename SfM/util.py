@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from config_default import CameraIntrinsics
 import cv2
 
 def world2camera(point_world, frame):
@@ -34,7 +35,11 @@ def world2pixel(point_world, frame):
 
     return point
 
-def pixel2camera(point, cameraParameters, depth = 1):
+def pixel2camera(point,
+                 cameraParameters = np.array([[CameraIntrinsics['focal_length'], 0., CameraIntrinsics['cx']],
+                                              [0., CameraIntrinsics['focal_length'], CameraIntrinsics['cy']],
+                                              [0., 0., 1.]]),
+                 depth = 1):
     point_camera = np.zeros( (point.shape[0], 3))
     for i in range(point_camera.shape[0]):
 

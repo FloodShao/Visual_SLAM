@@ -40,6 +40,7 @@ class VO(object):
 
     def featureMatches(self, refDescriptors,  curDescriptors):
 
+
         FLANN_INDEX_KDTREE = 1
         index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
         search_params = dict(checks = 500)
@@ -112,10 +113,42 @@ class VO(object):
         E = U * sigma * VT
         '''
 
-        R, t = np.zeros((3, 3)), np.zeros((3, 1))
+        #R1, R2, t = np.zeros((3, 3)), np.zeros((3,3)), np.zeros((3, 1))
+        #cv2.decomposeEssentialMat(E, R1, R2, t)
 
+        R, t = np.zeros((3, 3)), np.zeros((3, 1))
         cv2.recoverPose(E, matchedPoints1, matchedPoints2, cameraParameters, R, t, mask)
 
+        pts1 = util.pixel2camera(matchedPoints1)
+        pts2 = util.pixel2camera(matchedPoints2)
+
+        f1_R = np.array([[1., 0., 0.],
+                         [0., 1., 0.],
+                         [0., 0., 1.]])
+        f2_R = R
+
+        f1_t = np.array([[0.], [0.], [0.]])
+        f2_t = t
+
+        points4d = np.zeros((4, len(matchedPoints1)))
+        pMatrix1 = np.hstack( (f1_R, f1_t ) )
+        pMatrix2 = np.hstack( (f2_R, f2_t ) )
+
+        cv2.triangulatePoints(pMatrix1, pMatrix2, pts1.transpose()[:2, :], pts2.transpose()[:2, :], points4d)
+
+        points4d = points4d.transpose()
+        count = 0
+        for i in range(points4d.shape[0]):
+            if points4d[i, 2]/points4d[i, 3] < 0:
+                count += 1
+
+        print(count, '/', points4d.shape[0])
+        '''
+        if count < 0.5*points4d.shape[0]:
+            return R, t
+        else:
+            return R, -t
+        '''
         return R, t
 
 
@@ -154,13 +187,19 @@ class VO(object):
         points3d = []
         pointIdx = []
         print(points4d.shape[0])
+
+        count = 0
         for i in range(points4d.shape[0]):
             point_3d = points4d[i, :3] / points4d[i, 3]  #mind the index of array
             '''we observe some constructed points have negative depth and those points that too far away, clear them out'''
-            if(point_3d[2] > 0 and np.linalg.norm(point_3d) < triangulation_relate['dis_threshold']):
+            '''and np.linalg.norm(point_3d) < triangulation_relate['dis_threshold']'''
+            if(point_3d[2] > 0 ):
                 points3d.append(point_3d)
                 pointIdx.append(matches[i].queryIdx)
+                count += 1
 
+
+        print('triangulation:', count, '/', points4d.shape[0])
         return np.array(points3d), pointIdx
 
 
@@ -178,8 +217,8 @@ class VO(object):
         descriptors = []
 
         point_list = []
-        '''
 
+        '''
         for kf in self.map.keyframeset:
             point_list.extend(kf.pointList)
 
@@ -187,7 +226,8 @@ class VO(object):
         for p in point_list:
             descriptors.append(self.map.pointCloud[p].descriptors)
         '''
-        for p in self.map.pointCloud:
+
+        for p in self.map.pointCloud[-5000:-1]:
             descriptors.append(p.descriptors)
 
         return np.array(descriptors), point_list
@@ -204,8 +244,9 @@ class VO(object):
 
         objectPoints = []
         imagePoints = []
+        print('[newframePnP] matches: ', len(matches))
         for m in matches:
-            objectPoints.append( self.map.pointCloud[ m.queryIdx ].point3d )
+            objectPoints.append( self.map.pointCloud[m.queryIdx].point3d )
             imagePoints.append( frame.featurePoints[m.trainIdx].pt )
 
         objectPoints = np.array(objectPoints)
@@ -215,14 +256,17 @@ class VO(object):
         distCoeffs = None
         inliers = np.array([])
         flag, R_vector, t_vector, inliers = cv2.solvePnPRansac(objectPoints, imagePoints, frame.cameraParams, distCoeffs, R_vector, t_vector,
-                           useExtrinsicGuess = False, iterationsCount = 100, reprojectionError = 4.0, confidence = 0.7,
+                           useExtrinsicGuess = False, iterationsCount = 100, reprojectionError = 8.0, confidence = 0.7,
                            inliers = inliers, flags=cv2.SOLVEPNP_DLS)
 
-        #flag, R_vector, t_vector, inliers = cv2.solvePnPRansac(objectPoints, imagePoints, frame.cameraParams, distCoeffs, R_vector, t_vector,
-        #                   useExtrinsicGuess = True, iterationsCount = 100, reprojectionError = 4.0, confidence = 0.8,
-        #                   inliers = inliers, flags=cv2.SOLVEPNP_ITERATIVE)
+        flag, R_vector, t_vector, inliers = cv2.solvePnPRansac(objectPoints, imagePoints, frame.cameraParams, distCoeffs, R_vector, t_vector,
+                           useExtrinsicGuess = True, iterationsCount = 100, reprojectionError = 2.0, confidence = 0.8,
+                           inliers = inliers, flags=cv2.SOLVEPNP_ITERATIVE)
 
         f_inliers = []
+        if inliers is None:
+            return False
+
         for inl in inliers:
             f_inliers.extend(inl.tolist()) #mind that the inliers contains other parameters
 
