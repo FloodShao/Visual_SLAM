@@ -4,19 +4,7 @@
     <bookmark url="file://$PROJECT_DIR$/SfM/main_pipeline_1_17.py" line="114" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c1bd2b75-55ed-454e-97ab-9f0abd92b41f" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
-      <change beforePath="$PROJECT_DIR$/.idea/VisualSLAM.iml" afterPath="$PROJECT_DIR$/.idea/VisualSLAM.iml" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/SfM/config_default.py" afterPath="$PROJECT_DIR$/SfM/config_default.py" />
-      <change beforePath="$PROJECT_DIR$/SfM/data/datadir_tube.txt" afterPath="$PROJECT_DIR$/SfM/data/datadir_tube.txt" />
-      <change beforePath="$PROJECT_DIR$/SfM/generate_datadir.py" afterPath="$PROJECT_DIR$/SfM/generate_datadir.py" />
-      <change beforePath="$PROJECT_DIR$/SfM/main_pipeline_1_17.py" afterPath="$PROJECT_DIR$/SfM/main_pipeline_1_17.py" />
-      <change beforePath="$PROJECT_DIR$/SfM/test/test_triangulation.py" afterPath="$PROJECT_DIR$/SfM/test/test_triangulation.py" />
-      <change beforePath="$PROJECT_DIR$/SfM/util.py" afterPath="$PROJECT_DIR$/SfM/util.py" />
-      <change beforePath="$PROJECT_DIR$/SfM/visualOdometry.py" afterPath="$PROJECT_DIR$/SfM/visualOdometry.py" />
-    </list>
+    <list default="true" id="c1bd2b75-55ed-454e-97ab-9f0abd92b41f" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
