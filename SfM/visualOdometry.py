@@ -106,18 +106,21 @@ class VO(object):
     def findRelativePose(self, matchedPoints1, matchedPoints2, cameraParameters):
 
         E, mask = cv2.findEssentialMat(matchedPoints1, matchedPoints2, cameraParameters,
-                                 method=cv2.RANSAC, prob=0.9, threshold=1e-3)
+                                 method=cv2.RANSAC, prob=0.9, threshold=1e-2)
         '''
         U, sigma, VT = np.linalg.svd(E)
         sigma = [1, 1, 0]
         E = U * sigma * VT
         '''
+        #print('mask', mask)
 
         #R1, R2, t = np.zeros((3, 3)), np.zeros((3,3)), np.zeros((3, 1))
         #cv2.decomposeEssentialMat(E, R1, R2, t)
 
         R, t = np.zeros((3, 3)), np.zeros((3, 1))
         cv2.recoverPose(E, matchedPoints1, matchedPoints2, cameraParameters, R, t, mask)
+
+        '''
 
         pts1 = util.pixel2camera(matchedPoints1)
         pts2 = util.pixel2camera(matchedPoints2)
@@ -143,7 +146,7 @@ class VO(object):
                 count += 1
 
         print(count, '/', points4d.shape[0])
-        '''
+        
         if count < 0.5*points4d.shape[0]:
             return R, t
         else:
@@ -186,14 +189,13 @@ class VO(object):
 
         points3d = []
         pointIdx = []
-        print(points4d.shape[0])
 
         count = 0
         for i in range(points4d.shape[0]):
             point_3d = points4d[i, :3] / points4d[i, 3]  #mind the index of array
             '''we observe some constructed points have negative depth and those points that too far away, clear them out'''
             '''and np.linalg.norm(point_3d) < triangulation_relate['dis_threshold']'''
-            if(point_3d[2] > 0 ):
+            if(point_3d[2] > 0 and np.linalg.norm(point_3d - frame1.t_w) < triangulation_relate['dis_threshold']):
                 points3d.append(point_3d)
                 pointIdx.append(matches[i].queryIdx)
                 count += 1
@@ -215,7 +217,6 @@ class VO(object):
         #print(self.map.pointCloud[0].descriptors.shape[0])
 
         descriptors = []
-
         point_list = []
 
         '''
@@ -227,8 +228,9 @@ class VO(object):
             descriptors.append(self.map.pointCloud[p].descriptors)
         '''
 
-        for p in self.map.pointCloud[-5000:-1]:
+        for p in self.map.pointCloud[-1000:-1]:
             descriptors.append(p.descriptors)
+            point_list.append(p.id)
 
         return np.array(descriptors), point_list
 
@@ -244,9 +246,10 @@ class VO(object):
 
         objectPoints = []
         imagePoints = []
+        matchpointid = []
         print('[newframePnP] matches: ', len(matches))
         for m in matches:
-            objectPoints.append( self.map.pointCloud[m.queryIdx].point3d )
+            objectPoints.append( self.map.pointCloud[point_list[m.queryIdx]].point3d )
             imagePoints.append( frame.featurePoints[m.trainIdx].pt )
 
         objectPoints = np.array(objectPoints)
@@ -292,7 +295,7 @@ class VO(object):
         R, t = self.findRelativePose(matchedPoints1, matchedPoints2, frame1.cameraParams)
         '''mind that here R is 3x3 matrix, t is 3x1 vector'''
         f1_R = util.rvect2Rmat(frame1.r_w)
-        f2_R = R * f1_R
+        f2_R = np.dot(R, f1_R)
         frame2.r_w = util.Rmat2rvec(f2_R)
         frame2.t_w = ( frame1.t_w.reshape(3,1) + np.dot(f1_R, t) )
         self.updateframe(frame2)
@@ -356,15 +359,15 @@ class VO(object):
         x0 = np.hstack( (np.array(frameArgs).ravel(), np.array(points_3d).ravel()) )
 
         res = least_squares(BA.reprojetion_error, x0, jac_sparsity=A,
-                            verbose=2, x_scale='jac', ftol=1e-3, method='trf',
+                            verbose=2, x_scale='jac', ftol=1e-2, method='trf',
                             args=(points_2d_observe, n_frames, n_points, frame_indices, point_indices))
 
         frameArgs_opt, points_3d_opt = BA.recoverResults(res.x, n_frames, n_points)
 
         i = 0
         for fi in range(start_frame, end_frame+1):
-            self.frameStruct[fi].r_w = frameArgs_opt[i, 0:3]
-            self.frameStruct[fi].t_w = frameArgs_opt[i, 3:6]
+            self.frameStruct[fi].r_w = frameArgs_opt[i, 0:3].reshape((3, 1))
+            self.frameStruct[fi].t_w = frameArgs_opt[i, 3:6].reshape((3, 1))
             i += 1
             print("optimize frame id : ", fi)
 

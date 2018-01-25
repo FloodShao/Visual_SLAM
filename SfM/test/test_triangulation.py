@@ -2,23 +2,27 @@ from visualOdometry import VO
 import cv2
 import numpy as np
 import util
+from map import Map
 import math
 
 """check the reprojection
 """
+map = Map()
+VO = VO(map)
 
-VO = VO()
 
 '''../data/rgb/1305031102.243211.png'''
 image1 = cv2.imread('../data/capture_images_35.jpg')
-image2 = cv2.imread('../data/capture_images_36.jpg')
+image2 = cv2.imread('../data/capture_images_37.jpg')
 
 frame1 = VO.addframe(image1)
 frame2 = VO.addframe(image2)
 
-matches = VO.featureMatches(frame1.descriptors, frame2.descriptors)
-VO.plotMatches(VO.frameStruct[0], VO.frameStruct[1], matches[0:30])
+VO.initilization(frame1, frame2)
 
+'''''
+matches = VO.featureMatches(frame1.descriptors, frame2.descriptors)
+#VO.plotMatches(VO.frameStruct[0], VO.frameStruct[1], matches[0:30])
 
 matchedPoints1, matchedPoints2 = VO.generateMatchedPoints(frame1, frame2, matches)
 
@@ -28,14 +32,8 @@ R, t = VO.findRelativePose(matchedPoints1, matchedPoints2, frame1.cameraParams)
 print(R)
 print(t)
 
-frame1.R_w = np.eye(3)
-frame1.t_w = np.zeros((3, 1))
-frame2.R_w = R
-frame2.t_w = t
-
-#print(frame1.R_w, frame2.R_w)
 points, pointIdx = VO.triangulation(frame1, frame2, matchedPoints1, matchedPoints2, matches)
-
+'''
 
 A = np.zeros(points.shape)
 for i in range(points.shape[0]):
