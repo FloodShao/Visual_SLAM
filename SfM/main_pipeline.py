@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
 
                 
-                if np.linalg.norm(curframe.t_w - ref_t_w) > 3e-1 and np.linalg.norm(curframe.t_w - ref_t_w) < 20:
+                if np.linalg.norm(curframe.t_w - ref_t_w) > 5e-1 and np.linalg.norm(curframe.t_w - ref_t_w) < 20:
 
                     '''update reference position'''
                     ref_t_w = prevframe.t_w
@@ -131,11 +131,26 @@ if __name__ == '__main__':
     print(path.shape)
     print(path.transpose())
 
-
-    points = []
+    '''
+    points_index = []
     for kf in myVO.map.keyframeset:
         for pi in kf.pointList:
-            points.append(myVO.map.pointCloud[pi].point3d)
+            points_index.append(pi)
+
+    points = []
+    points_index = list(set(points_index))
+    for pi in points_index:
+        #if myVO.map.pointCloud[pi].point3d[0] < 50 and myVO.map.pointCloud[pi].point3d[1] < 50:
+        points.append(myVO.map.pointCloud[pi].point3d)
+        
+    '''
+
+    points = []
+    count = 0
+    for pi in myVO.map.pointCloud:
+        if count % 10 == 0:
+            points.append(pi.point3d)
+        count += 1
     points = np.array(points).transpose()
 
     x, y, z = -path[0], -path[1], -path[2]
