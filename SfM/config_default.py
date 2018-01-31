@@ -23,5 +23,5 @@ compare_keyframe = {
 }
 
 triangulation_relate = {
-    'dis_threshold' : 1e3
+    'dis_threshold' : 500
 }

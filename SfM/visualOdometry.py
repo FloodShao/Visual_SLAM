@@ -82,7 +82,7 @@ class VO(object):
         kp2 = frame2.featurePoints
 
         draw_params = dict(matchColor = (0,255,0), #draw matches in green color
-                           singlePointColor = (255,0,0),
+                           singlePointColor = (0,255,0),
                            matchesMask = None, #draw only inliers
                            flags = 2)
 

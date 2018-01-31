@@ -20,9 +20,9 @@ frame2 = VO.addframe(image2)
 
 VO.initilization(frame1, frame2)
 
-'''''
+
 matches = VO.featureMatches(frame1.descriptors, frame2.descriptors)
-#VO.plotMatches(VO.frameStruct[0], VO.frameStruct[1], matches[0:30])
+VO.plotMatches(VO.frameStruct[0], VO.frameStruct[1], matches)
 
 matchedPoints1, matchedPoints2 = VO.generateMatchedPoints(frame1, frame2, matches)
 
@@ -33,7 +33,7 @@ print(R)
 print(t)
 
 points, pointIdx = VO.triangulation(frame1, frame2, matchedPoints1, matchedPoints2, matches)
-'''
+
 
 A = np.zeros(points.shape)
 for i in range(points.shape[0]):

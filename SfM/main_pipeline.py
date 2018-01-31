@@ -65,9 +65,19 @@ if __name__ == '__main__':
                 '''update point cloud'''
                 prevframe = myVO.frameStruct[curframe.id -1]
 
+                if curframe.id - frame_count == 50:
+                    point_start = point_end
+                    point_end = len(myVO.map.pointCloud)
+                    print('frame_count:', frame_count, '\n',
+                          'point_start', point_start, '\n',
+                          'point_end', point_end)
+
+                    myVO.localBA(frame_count, curframe.id, point_start, point_end)
+
+                    frame_count = curframe.id
 
                 
-                if np.linalg.norm(curframe.t_w - ref_t_w) > 5e-1 and np.linalg.norm(curframe.t_w - ref_t_w) < 20:
+                if np.linalg.norm(curframe.t_w - ref_t_w) > 1 and np.linalg.norm(curframe.t_w - ref_t_w) < 20:
 
                     '''update reference position'''
                     ref_t_w = prevframe.t_w
@@ -99,12 +109,12 @@ if __name__ == '__main__':
                     #myVO.localBA(curframe.id-1, curframe.id, start_count, end_count)
 
                 else:
-                    if np.linalg.norm(curframe.t_w - ref_t_w) > 5:
+                    if np.linalg.norm(curframe.t_w - ref_t_w) > 20:
                         curframe.r_w = prevframe.r_w
                         curframe.t_w = prevframe.t_w
                         print("[Warning] one frame error!, frame id: ", curframe.id)
 
-
+                '''
                 if curframe.id - frame_count == 50:
                     point_start = point_end
                     point_end = len(myVO.map.pointCloud)
@@ -115,7 +125,7 @@ if __name__ == '__main__':
                     myVO.localBA(frame_count, curframe.id, point_start, point_end)
 
                     frame_count = curframe.id
-                    
+                '''
 
                 print(curframe.t_w)
 
@@ -131,7 +141,7 @@ if __name__ == '__main__':
     print(path.shape)
     print(path.transpose())
 
-    '''
+
     points_index = []
     for kf in myVO.map.keyframeset:
         for pi in kf.pointList:
@@ -139,21 +149,25 @@ if __name__ == '__main__':
 
     points = []
     points_index = list(set(points_index))
+    count = 0
     for pi in points_index:
         #if myVO.map.pointCloud[pi].point3d[0] < 50 and myVO.map.pointCloud[pi].point3d[1] < 50:
-        points.append(myVO.map.pointCloud[pi].point3d)
-        
-    '''
+        if count % 1 == 0:
+            points.append(myVO.map.pointCloud[pi].point3d)
+        count += 1
 
+
+    '''
     points = []
     count = 0
     for pi in myVO.map.pointCloud:
-        if count % 10 == 0:
+        if count % 2 == 0:
             points.append(pi.point3d)
         count += 1
+    '''
     points = np.array(points).transpose()
 
-    x, y, z = -path[0], -path[1], -path[2]
+    y, x, z = path[0], path[1], -path[2]
     xp, yp, zp = points[0], points[1], points[2]
 
     fig = plt.figure(1)
@@ -163,6 +177,6 @@ if __name__ == '__main__':
 
     fig1 = plt.figure(2)
     ax1 = Axes3D(fig1)
-    ax1.scatter(xp, yp, zp, 'b')
+    ax1.scatter(xp, yp, zp, zdir='z', s=0.5, c='b')
     ax1.plot(x, y, z, 'r')
     plt.show()
